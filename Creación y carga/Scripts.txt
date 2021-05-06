@@ -1,0 +1,112 @@
+CREATE KEYSPACE IF NOT EXISTS sist_proyecto 
+  WITH REPLICATION = {
+    'class' : 'SimpleStrategy',
+    'replication_factor' : 1
+  }
+AND DURABLE_WRITES = false; 
+
+USE sist_proyecto;
+
+drop table inst_bancaria;
+drop table cuentahabiente;
+drop table trx_by_cuentabiente;
+drop table trx_by_institucion; 
+drop table trx_cliente_mes; 
+
+
+select * from  inst_bancaria;
+select * from  cuentahabiente;
+select * from  trx_by_cuentabiente;
+select * from  trx_by_institucion; 
+select * from  trx_cliente_mes; 
+
+
+CREATE TABLE IF NOT EXISTS inst_bancaria (
+  inst_bancaria text,
+  abreviatura text,
+  tipo_cuenta text,
+  PRIMARY KEY (inst_bancaria, tipo_cuenta)
+)
+WITH CLUSTERING ORDER BY (tipo_cuenta DESC);
+
+COPY inst_bancaria(inst_bancaria, abreviatura, tipo_cuenta) FROM 'E:\USAC\Primer Semestre 2021\Bases de Datos 2\Clase\Proyecto Curso\Carga\ArchivoInstbancarias1.csv' WITH HEADER=TRUE AND DELIMITER=',';
+COPY inst_bancaria(inst_bancaria, abreviatura, tipo_cuenta) FROM 'E:\USAC\Primer Semestre 2021\Bases de Datos 2\Clase\Proyecto Curso\Carga\ArchivoInstbancarias2.csv' WITH HEADER=TRUE AND DELIMITER=',';
+
+
+CREATE TABLE IF NOT EXISTS cuentahabiente (
+  cui bigint,
+  nombre text,
+  apellido text,
+  email text,
+  genero text,
+  inst_bancaria text,
+  abreviacion text,
+  tipo_cuenta text,
+  saldo_inicial int,
+  fecha_registro date,
+  PRIMARY KEY (cui, inst_bancaria, tipo_cuenta)
+)
+WITH CLUSTERING ORDER BY (inst_bancaria DESC, tipo_cuenta DESC);
+
+COPY cuentahabiente(nombre, apellido, cui, email, fecha_registro, genero, inst_bancaria, abreviacion, tipo_cuenta, saldo_inicial) FROM 'E:\USAC\Primer Semestre 2021\Bases de Datos 2\Clase\Proyecto Curso\Carga\Archivocuentahabientes1.csv' WITH HEADER=TRUE AND DELIMITER=',';
+COPY cuentahabiente(nombre, apellido, cui, email, fecha_registro, genero, inst_bancaria, abreviacion, tipo_cuenta, saldo_inicial) FROM 'E:\USAC\Primer Semestre 2021\Bases de Datos 2\Clase\Proyecto Curso\Carga\Archivocuentahabientes2.csv' WITH HEADER=TRUE AND DELIMITER=',';
+
+
+CREATE TABLE IF NOT EXISTS trx_by_cuentabiente (
+  cui bigint,
+  email text,
+  nombre text,
+  apellido text,
+  genero text,
+  inst_bancaria text,
+  abreviatura text,
+  tipo_cuenta text,
+  monto bigint,
+  fecha_hora timestamp,
+  tipo_trx text,
+  PRIMARY KEY (cui, abreviatura, tipo_cuenta, tipo_trx, fecha_hora)
+)
+WITH CLUSTERING ORDER BY (abreviatura DESC, tipo_cuenta DESC, tipo_trx DESC, fecha_hora DESC);
+
+COPY trx_by_cuentabiente(nombre, apellido, cui, email, genero, inst_bancaria, abreviatura, tipo_cuenta, monto, fecha_hora,tipo_trx) FROM 'E:\USAC\Primer Semestre 2021\Bases de Datos 2\Clase\Proyecto Curso\Carga\Archivotrxcliente1.csv' WITH HEADER=TRUE AND DELIMITER=',';
+COPY trx_by_cuentabiente(nombre, apellido, cui, email, genero, inst_bancaria, abreviatura, tipo_cuenta, monto, fecha_hora,tipo_trx) FROM 'E:\USAC\Primer Semestre 2021\Bases de Datos 2\Clase\Proyecto Curso\Carga\Archivotrxcliente2.csv' WITH HEADER=TRUE AND DELIMITER=',';
+
+
+CREATE TABLE IF NOT EXISTS trx_by_institucion (
+  inst_bancaria text,
+  abreviatura text,
+  cui bigint,
+  tipo_cuenta text,
+  monto bigint,
+  fecha_hora timestamp,
+  tipo_trx text,
+  PRIMARY KEY (abreviatura, tipo_trx, tipo_cuenta, fecha_hora, cui)
+)
+WITH CLUSTERING ORDER BY (tipo_trx DESC, tipo_cuenta DESC, fecha_hora DESC, cui DESC);
+
+COPY trx_by_institucion(cui, inst_bancaria, abreviatura, tipo_cuenta, monto, fecha_hora, tipo_trx) FROM 'E:\USAC\Primer Semestre 2021\Bases de Datos 2\Clase\Proyecto Curso\Carga\Archivotrxinstitucion1.csv' WITH HEADER=TRUE AND DELIMITER=',';
+COPY trx_by_institucion(cui, inst_bancaria, abreviatura, tipo_cuenta, monto, fecha_hora, tipo_trx) FROM 'E:\USAC\Primer Semestre 2021\Bases de Datos 2\Clase\Proyecto Curso\Carga\Archivotrxinstitucion2.csv' WITH HEADER=TRUE AND DELIMITER=',';
+
+
+
+CREATE TABLE IF NOT EXISTS trx_cliente_mes (
+  cui bigint,
+  abreviatura text,
+  tipo_cuenta text,
+  tipo_trx text,
+  fecha_hora timestamp,
+  email text,
+  nombre text,
+  apellido text,
+  inst_bancaria text,
+  monto int,
+  genero text,
+  PRIMARY KEY ((cui, fecha_hora), abreviatura, tipo_cuenta, tipo_trx)
+)
+WITH CLUSTERING ORDER BY (abreviatura DESC, tipo_cuenta DESC, tipo_trx DESC);
+
+COPY trx_cliente_mes(nombre, apellido, cui, email, genero, inst_bancaria, abreviatura, tipo_cuenta, monto, fecha_hora,tipo_trx) FROM 'E:\USAC\Primer Semestre 2021\Bases de Datos 2\Clase\Proyecto Curso\Carga\Archivotrxclientemes1.csv' WITH HEADER=TRUE AND DELIMITER=',';
+COPY trx_cliente_mes(nombre, apellido, cui, email, genero, inst_bancaria, abreviatura, tipo_cuenta, monto, fecha_hora,tipo_trx) FROM 'E:\USAC\Primer Semestre 2021\Bases de Datos 2\Clase\Proyecto Curso\Carga\Archivotrxclientemes2.csv' WITH HEADER=TRUE AND DELIMITER=',';
+
+
+
